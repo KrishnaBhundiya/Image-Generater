@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Creative Image Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f0f2f5 0%, #e0e5ec 100%); /* Subtle gradient background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+            color: #333; /* Default text color */
+        }
+        .card-container {
+            background-color: #ffffff;
+            border-radius: 16px; /* More rounded corners */
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15); /* More prominent shadow */
+            padding: 28px;
+            width: 100%;
+            max-width: 700px; /* Wider for better layout */
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 24px; /* Increased gap for spacing */
+            transition: all 0.3s ease-in-out; /* Smooth transitions for overall container */
+        }
+
+        /* Enhanced image display */
+        .image-display {
+            width: 100%;
+            min-height: 320px;
+            background-color: #f8fafc; /* Lighter background for image area */
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+            padding: 15px;
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.05); /* Inner shadow for depth */
+        }
+        .image-display img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            border-radius: 8px;
+            transition: opacity 0.5s ease-in-out; /* Fade-in effect for images */
+        }
+        .loading-spinner {
+            border: 5px solid #e0e7ff; /* Lighter spinner base */
+            border-top: 5px solid #4f46e5; /* Primary blue for spinner */
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 0.8s linear infinite; /* Faster spin */
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Button styles with more motion */
+        .btn {
+            padding: 14px 28px;
+            font-weight: 600;
+            border-radius: 10px; /* Slightly more rounded buttons */
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); /* Smoother button transitions */
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            letter-spacing: 0.5px;
+        }
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+        .btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Specific button colors */
+        .btn-blue {
+            background: linear-gradient(180deg, #4f46e5 0%, #3b82f6 100%);
+            color: white;
+            border: none;
+        }
+        .btn-blue:hover {
+            background: linear-gradient(180deg, #3b82f6 0%, #4f46e5 100%);
+        }
+        .btn-green {
+            background: linear-gradient(180deg, #22c55e 0%, #16a34a 100%);
+            color: white;
+            border: none;
+        }
+        .btn-green:hover {
+            background: linear-gradient(180deg, #16a34a 0%, #22c55e 100%);
+        }
+        .btn-purple {
+            background: linear-gradient(180deg, #9333ea 0%, #7e22ce 100%);
+            color: white;
+            border: none;
+        }
+        .btn-purple:hover {
+            background: linear-gradient(180deg, #7e22ce 0%, #9333ea 100%);
+        }
+        .btn-orange { /* New color for the prompt suggestion button */
+            background: linear-gradient(180deg, #ff9800 0%, #f57c00 100%);
+            color: white;
+            border: none;
+        }
+        .btn-orange:hover {
+            background: linear-gradient(180deg, #f57c00 0%, #ff9800 100%);
+        }
+
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid #cbd5e0;
+            resize: vertical;
+            min-height: 90px;
+            font-size: 1em;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+        textarea:focus {
+            outline: none;
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 16px; /* Spacing between textarea and button */
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 640px) {
+            .card-container {
+                padding: 18px;
+                gap: 18px;
+            }
+            .btn {
+                padding: 12px 20px;
+                font-size: 0.95em;
+            }
+            textarea {
+                min-height: 70px;
+            }
+            h1 {
+                font-size: 2rem; /* Adjust heading size for smaller screens */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="card-container">
+        <h1 class="text-4xl font-extrabold text-gray-800 leading-tight">🎨 Creative Image Generator</h1>
+        <p class="text-gray-700 text-md">
+            Unleash your imagination! Use the buttons below to generate a default anime character, or
+            enter your own descriptive prompt to craft a unique image with the power of AI.
+        </p>
+
+        <div id="imageDisplay" class="image-display">
+            <p class="text-gray-500 text-lg">Your generated image will appear here!</p>
+        </div>
+
+        <button id="downloadButton" class="btn btn-purple w-full" disabled>
+            Download Image
+        </button>
+
+        <button id="generateAnimeButton" class="btn btn-blue w-full">
+            Generate Default Anime Character
+        </button>
+
+        <div class="input-group w-full">
+            <textarea id="customPromptInput" placeholder="Describe your image here (e.g., 'a cyberpunk city at night with neon lights', 'a mystical creature in an ancient forest')..." class="text-gray-700"></textarea>
+            <button id="suggestPromptButton" class="btn btn-orange w-full">
+                ✨ Suggest Prompt
+            </button>
+            <button id="generateCustomButton" class="btn btn-green w-full">
+                Generate Custom Image
+            </button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const generateAnimeButton = document.getElementById('generateAnimeButton');
+            const generateCustomButton = document.getElementById('generateCustomButton');
+            const downloadButton = document.getElementById('downloadButton');
+            const suggestPromptButton = document.getElementById('suggestPromptButton'); // New button
+            const customPromptInput = document.getElementById('customPromptInput');
+            const imageDisplay = document.getElementById('imageDisplay');
+
+            let currentImageUrl = ''; // To store the last generated image URL
+
+            // Function to handle image generation
+            async function generateImage(prompt) {
+                // Clear previous content and show loading spinner
+                imageDisplay.innerHTML = '<div class="loading-spinner"></div>';
+                generateAnimeButton.disabled = true;
+                generateCustomButton.disabled = true;
+                downloadButton.disabled = true; // Disable download until new image is ready
+                suggestPromptButton.disabled = true; // Disable prompt suggestion during image generation
+
+                generateAnimeButton.textContent = 'Generating...';
+                generateCustomButton.textContent = 'Generating...';
+                suggestPromptButton.textContent = 'Generating...';
+
+                try {
+                    // Payload for the Image Generation API call
+                    const imagePayload = {
+                        instances: { prompt: prompt },
+                        parameters: { "sampleCount": 1 }
+                    };
+
+                    // API details for Image Generation
+                    const apiKey = ""; // Canvas will automatically provide the API key
+                    const imageUrl = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${apiKey}`;
+
+                    // Exponential backoff retry function
+                    const fetchWithRetry = async (url, options, retries = 5, delay = 1000) => {
+                        for (let i = 0; i < retries; i++) {
+                            try {
+                                const response = await fetch(url, options);
+                                if (!response.ok) {
+                                    if (response.status === 429 && i < retries - 1) { // Too Many Requests
+                                        await new Promise(res => setTimeout(res, delay * Math.pow(2, i)));
+                                        continue;
+                                    }
+                                    throw new Error(`HTTP error! Status: ${response.status}`);
+                                }
+                                return response;
+                            } catch (error) {
+                                if (i === retries - 1) throw error;
+                                console.warn(`Retry ${i + 1}/${retries} after error:`, error);
+                                await new Promise(res => setTimeout(res, delay * Math.pow(2, i)));
+                            }
+                        }
+                    };
+
+                    const response = await fetchWithRetry(imageUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(imagePayload)
+                    });
+
+                    const result = await response.json();
+
+                    if (result.predictions && result.predictions.length > 0 && result.predictions[0].bytesBase64Encoded) {
+                        currentImageUrl = `data:image/png;base64,${result.predictions[0].bytesBase64Encoded}`;
+                        imageDisplay.innerHTML = `<img src="${currentImageUrl}" alt="Generated Image" style="opacity: 0;">`;
+                        // Add a subtle fade-in effect after image loads
+                        imageDisplay.querySelector('img').onload = function() {
+                            this.style.opacity = 1;
+                            downloadButton.disabled = false; // Enable download button after image loads
+                        };
+                    } else {
+                        imageDisplay.innerHTML = '<p class="text-red-500">Failed to generate image. Please try again.</p>';
+                        console.error("API response missing image data:", result);
+                        downloadButton.disabled = true; // Keep download disabled on failure
+                    }
+                } catch (error) {
+                    imageDisplay.innerHTML = '<p class="text-red-500">Error generating image: ' + error.message + '</p>';
+                    console.error("Error during image generation:", error);
+                    downloadButton.disabled = true; // Keep download disabled on error
+                } finally {
+                    generateAnimeButton.disabled = false;
+                    generateCustomButton.disabled = false;
+                    suggestPromptButton.disabled = false; // Re-enable prompt suggestion button
+                    generateAnimeButton.textContent = 'Generate Default Anime Character';
+                    generateCustomButton.textContent = 'Generate Custom Image';
+                    suggestPromptButton.textContent = '✨ Suggest Prompt';
+                }
+            }
+
+            // Function to handle prompt suggestion using LLM
+            async function suggestPrompt() {
+                const currentPrompt = customPromptInput.value.trim();
+                let llmPrompt;
+
+                if (currentPrompt) {
+                    llmPrompt = `Refine and elaborate on the following image generation prompt, making it more descriptive and creative, adding details about style, lighting, or setting: "${currentPrompt}"`;
+                } else {
+                    llmPrompt = "Generate a highly creative and descriptive image generation prompt, focusing on fantasy, sci-fi, or abstract themes, including details about style, lighting, and composition.";
+                }
+
+                suggestPromptButton.disabled = true;
+                generateAnimeButton.disabled = true;
+                generateCustomButton.disabled = true;
+                suggestPromptButton.textContent = 'Suggesting...';
+
+                try {
+                    const chatHistory = [{ role: "user", parts: [{ text: llmPrompt }] }];
+                    const payload = { contents: chatHistory };
+                    const apiKey = ""; // Canvas will automatically provide the API key
+                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+
+                    const fetchWithRetry = async (url, options, retries = 5, delay = 1000) => {
+                        for (let i = 0; i < retries; i++) {
+                            try {
+                                const response = await fetch(url, options);
+                                if (!response.ok) {
+                                    if (response.status === 429 && i < retries - 1) { // Too Many Requests
+                                        await new Promise(res => setTimeout(res, delay * Math.pow(2, 0))); // Adjusted for LLM calls
+                                        continue;
+                                    }
+                                    throw new Error(`HTTP error! Status: ${response.status}`);
+                                }
+                                return response;
+                            } catch (error) {
+                                if (i === retries - 1) throw error;
+                                console.warn(`Retry ${i + 1}/${retries} after error:`, error);
+                                await new Promise(res => setTimeout(res, delay * Math.pow(2, i)));
+                            }
+                        }
+                    };
+
+                    const response = await fetchWithRetry(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    const result = await response.json();
+
+                    if (result.candidates && result.candidates.length > 0 &&
+                        result.candidates[0].content && result.candidates[0].content.parts &&
+                        result.candidates[0].content.parts.length > 0) {
+                        const suggestedText = result.candidates[0].content.parts[0].text;
+                        customPromptInput.value = suggestedText; // Update the textarea with the suggested prompt
+                    } else {
+                        customPromptInput.value = 'Failed to get a prompt suggestion. Try again or enter your own!';
+                        console.error("LLM API response missing content:", result);
+                    }
+                } catch (error) {
+                    customPromptInput.value = 'Error suggesting prompt: ' + error.message;
+                    console.error("Error during prompt suggestion:", error);
+                } finally {
+                    suggestPromptButton.disabled = false;
+                    generateAnimeButton.disabled = false;
+                    generateCustomButton.disabled = false;
+                    suggestPromptButton.textContent = '✨ Suggest Prompt';
+                }
+            }
+
+            // Event listener for default anime character button
+            generateAnimeButton.addEventListener('click', () => {
+                const defaultPrompt = "a tall, anime-like, badass looking long hair man holding an intense gaze in his eyes, detailed, high resolution";
+                generateImage(defaultPrompt);
+            });
+
+            // Event listener for custom image button
+            generateCustomButton.addEventListener('click', () => {
+                const customPrompt = customPromptInput.value.trim();
+                if (customPrompt) {
+                    generateImage(customPrompt);
+                } else {
+                    imageDisplay.innerHTML = '<p class="text-orange-500">Please enter a prompt for the custom image!</p>';
+                }
+            });
+
+            // Event listener for prompt suggestion button
+            suggestPromptButton.addEventListener('click', suggestPrompt);
+
+            // Event listener for download button
+            downloadButton.addEventListener('click', () => {
+                if (currentImageUrl) {
+                    const a = document.createElement('a');
+                    a.href = currentImageUrl;
+                    a.download = 'generated_image.png'; // Default filename
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
